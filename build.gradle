@@ -1,0 +1,91 @@
+plugins {
+id 'org.springframework.boot' version '2.2.2.RELEASE'
+id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+id 'java'
+id 'maven-publish'
+}
+
+group 'com.tmax.openframe'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'war'
+
+ext {
+manifest_attributes = [
+'Implementation-Title': 'COBOL to Java template project',
+'Built-By': System.properties['user.name'],
+'Build-Timestamp': new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
+'Build-Version': "${version}",
+'Created-By': "Gradle ${gradle.gradleVersion}",
+'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
+'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
+]
+}
+
+sourceCompatibility = 11
+targetCompatibility = 11
+
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+
+repositories {
+  mavenCentral()
+  maven {
+    url "http://192.168.14.233:8080/repository/openframe8/"
+  }
+}
+
+task fatJar(type: Jar) {
+  manifest {
+    attributes manifest_attributes
+  }
+  from { (configurations.compile).collect { it.isDirectory() ? it : zipTree(it) } } {
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+  }
+  destinationDir file("$buildDir")
+  archiveBaseName.set("${rootProject.name}")
+  archiveVersion.set("${version}")
+  archiveExtension.set("jar")
+  with jar
+}
+
+dependencies {
+  implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.1.0'
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+  implementation 'com.querydsl:querydsl-jpa'
+  implementation 'org.springframework.boot:spring-boot-starter-quartz'
+  implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+  compileOnly("org.projectlombok:lombok")
+
+  testCompileOnly("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok")
+  testAnnotationProcessor("org.projectlombok:lombok")
+
+
+  compile 'org.apache.commons:commons-lang3:3.5'
+  compile 'ch.obermuhlner:big-math:2.3.0'
+
+  compile "org.mapstruct:mapstruct:1.3.1.Final"
+  annotationProcessor "org.mapstruct:mapstruct-processor:1.3.1.Final"
+
+  compile 'org.projectlombok:lombok:1.18.10'
+  annotationProcessor 'org.projectlombok:lombok:1.18.10'
+  annotationProcessor 'com.querydsl:querydsl-apt:4.2.1:jpa'
+
+  compile(fileTree("lib"))
+
+  implementation group: 'io.zonky.test', name: 'embedded-postgres', version: '2.0.4'
+}
+
+bootWar {
+archiveBaseName = "TEST"
+archiveFileName = "TEST.war"
+}
+
+jar {
+
+}
+
